@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Circulation Management (Borrowing)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", "Segoe UI", Tahoma, sans-serif;
+            background-color: #f5f5f5;
+            font-size: 13px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 10px auto;
+            background-color: #fff;
+            border: 1px solid #999;
+        }
+
+        /* Title Bar */
+        .title-bar {
+            background: linear-gradient(to bottom, #4a4a4a, #2d2d2d);
+            color: #fff;
+            padding: 6px 12px;
+            font-weight: bold;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .window-controls span {
+            margin-left: 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* Search Section */
+        .search-section {
+            padding: 12px 15px;
+            border-bottom: 2px solid #7cba3f;
+            background-color: #fafafa;
+        }
+
+        .search-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .search-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .form-group label {
+            color: #c00;
+            white-space: nowrap;
+        }
+
+        .form-group input[type="text"],
+        .form-group select {
+            padding: 3px 6px;
+            border: 1px solid #7f9db9;
+            height: 22px;
+            font-size: 12px;
+        }
+
+        .form-group input[type="text"] {
+            width: 150px;
+        }
+
+        .shortcut-key {
+            color: #666;
+            font-size: 11px;
+        }
+
+        .search-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #ff6600;
+            padding: 0 2px;
+        }
+
+        .btn {
+            padding: 3px 12px;
+            border: 1px solid #7f9db9;
+            background: linear-gradient(to bottom, #fff, #e0e0e0);
+            cursor: pointer;
+            font-size: 12px;
+            border-radius: 2px;
+            height: 24px;
+        }
+
+        .btn:hover {
+            background: linear-gradient(to bottom, #f0f0f0, #d0d0d0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(to bottom, #9cd64a, #7cba3f);
+            border-color: #7cba3f;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(to bottom, #8bc63e, #6ba82f);
+        }
+
+        .info-text {
+            color: #333;
+            padding: 0 10px;
+        }
+
+        .advanced-search {
+            color: green;
+            text-decoration: none;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .advanced-search:hover {
+            text-decoration: underline;
+        }
+
+        /* Section Header */
+        .section-header {
+            background: linear-gradient(to bottom, #f9f9f9, #eee);
+            padding: 6px 15px;
+            border-bottom: 1px solid #ccc;
+            color: #c00;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        /* Table Container */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        thead th {
+            background: linear-gradient(to bottom, #f0f0f0, #ddd);
+            border: 1px solid #ccc;
+            padding: 6px 8px;
+            text-align: center;
+            font-weight: normal;
+            position: sticky;
+            top: 0;
+        }
+
+        tbody td {
+            border: 1px solid #e0e0e0;
+            padding: 5px 8px;
+            text-align: center;
+            color: #00c;
+            cursor: pointer;
+        }
+
+        tbody tr:hover {
+            background-color: #ffffcc;
+        }
+
+        tbody td:first-child,
+        thead th:first-child {
+            text-align: left;
+        }
+
+        /* Pagination */
+        .pagination-bar {
+            padding: 8px 15px;
+            border-top: 1px solid #ccc;
+            border-bottom: 1px solid #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            background-color: #fafafa;
+        }
+
+        .page-btn {
+            padding: 3px 18px;
+            border: 1px solid #7f9db9;
+            background: linear-gradient(to bottom, #fff, #e0e0e0);
+            cursor: pointer;
+            font-size: 11px;
+            border-radius: 2px;
+        }
+
+        .page-btn:hover {
+            background: linear-gradient(to bottom, #ffffcc, #ffe680);
+        }
+
+        .page-nav {
+            color: #999;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* Borrow Section */
+        .borrow-section {
+            padding: 10px 15px;
+            background-color: #fff;
+        }
+
+        .borrow-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .borrow-title {
+            color: #c00;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .borrow-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 12px;
+        }
+
+        .action-hint {
+            color: #00c;
+        }
+
+        .action-hint span {
+            color: #000;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            cursor: pointer;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: linear-gradient(to bottom, #f9f9f9, #eee);
+            border-top: 1px solid #ccc;
+            padding: 5px 15px;
+            font-size: 12px;
+            color: #333;
+        }
+
+        /* Scrollbar styles */
+        ::-webkit-scrollbar {
+            height: 16px;
+            width: 16px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c0c0c0;
+            border: 2px solid #fff;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Title Bar -->
+        <div class="title-bar">
+            <span>Book Circulation Management (Borrowing)</span>
+            <div class="window-controls">
+                <span>&#x2014;</span>
+                <span>&#x25A1;</span>
+                <span>&#2715;</span>
+            </div>
+        </div>
+
+        <!-- Search Section -->
+        <div class="search-section">
+            <div class="search-row">
+                <div class="form-group">
+                    <label>Reader No [F1]:</label>
+                    <input type="text" id="readerNo" placeholder="">
+                    <button class="search-btn" title="Search">&#128269;</button>
+                    <label>Reader Name:</label>
+                    <input type="text" id="readerName" readonly style="width:80px; background:#f0f0f0;">
+                    <label>Gender:</label>
+                    <input type="text" id="gender" readonly style="width:40px; background:#f0f0f0;">
+                    <label>Type:</label>
+                    <input type="text" id="readerType" readonly style="width:60px; background:#f0f0f0;">
+                    <label>Available:</label>
+                    <input type="text" id="availableQty" readonly style="width:40px; background:#f0f0f0;">
+                    <label>Borrowed:</label>
+                    <input type="text" id="borrowedQty" readonly style="width:40px; background:#f0f0f0;">
+                </div>
+                <button class="btn btn-primary">Details</button>
+                <button class="btn btn-primary">Cancel Borrowing</button>
+            </div>
+            <div class="search-row">
+                <div class="form-group">
+                    <label>Book No [F2]:</label>
+                    <input type="text" id="bookNo" placeholder="">
+                    <button class="search-btn" title="Search">&#128269;</button>
+                    <label>Book Name:</label>
+                    <input type="text" id="bookName" readonly style="width:120px; background:#f0f0f0;">
+                    <label>Remaining:</label>
+                    <input type="text" id="remainingQty" readonly style="width:40px; background:#f0f0f0;">
+                </div>
+                <button class="search-btn advanced-search" title="Advanced Search">&#128269; Advanced Search [F8]</button>
+                <button class="btn btn-primary">Details</button>
+            </div>
+        </div>
+
+        <!-- All Books Section -->
+        <div class="section-header">All Books</div>
+        <div class="table-container" style="max-height:200px; overflow-y:auto;">
+            <table id="booksTable">
+                <thead>
+                    <tr>
+                        <th>Book Name</th>
+                        <th>Author</th>
+                        <th>Publisher</th>
+                        <th>Category No.</th>
+                        <th>Classification</th>
+                        <th>Unit Price</th>
+                        <th>Total Copies</th>
+                        <th>Borrowed</th>
+                        <th>Remaining</th>
+                        <th>Borrow Count</th>
+                        <th>Book No.</th>
+                        <th>Attachment</th>
+                        <th>Barcode</th>
+                        <th>Location Room</th>
+                        <th>Shelf</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="booksTableBody">
+                    <!-- Data will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-bar">
+            <span class="page-nav">&lt;</span>
+            <button class="page-btn">First 10 Pages</button>
+            <button class="page-btn" style="background:linear-gradient(to bottom,#ffffcc,#ffe680);">Prev 10 Pages</button>
+            <button class="page-btn" style="background:linear-gradient(to bottom,#ffffcc,#ffe680);">Next 10 Pages</button>
+            <button class="page-btn">Last 10 Pages</button>
+            <span class="page-nav">&gt;</span>
+        </div>
+
+        <!-- Borrow Section -->
+        <div class="borrow-section">
+            <div class="borrow-header">
+                <span class="borrow-title">Books to Borrow This Time</span>
+                <div class="borrow-actions">
+                    <span class="action-hint"><span>Delete:</span> Delete(-Numpad) &nbsp;&nbsp; <span>Add:</span> Enter(+Numpad)</span>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" id="closeAfterConfirm"> Close after confirm</label>
+                        <label><input type="checkbox" id="printReceipt" checked> Print receipt</label>
+                    </div>
+                    <button class="btn btn-primary" onclick="confirmBorrow()">Confirm Borrowing [F5]</button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table id="borrowTable">
+                    <thead>
+                        <tr>
+                            <th>Book No.</th>
+                            <th>Book Name</th>
+                            <th>Publisher</th>
+                            <th>Borrow Date</th>
+                            <th>Operator</th>
+                            <th>Unit Price</th>
+                        </tr>
+                    </thead>
+                    <tbody id="borrowTableBody">
+                        <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            Total: <span id="totalRecords">0</span> records
+        </div>
+    </div>
+
+    <script>
+        // Sample data for all books
+        const booksData = [
+            { id: 'BK001', name: 'Introduction to Algorithms', author: 'Thomas H. Cormen', publisher: 'MIT Press', category: 'CS-001', classification: 'Computer Science', price: 89.99, totalCopies: 10, borrowed: 3, remaining: 7, borrowCount: 45, barcode: '9780262033848', locationRoom: 'A101', shelf: 'Rack-01' },
+            { id: 'BK002', name: 'Clean Code', author: 'Robert C. Martin', publisher: 'Prentice Hall', category: 'CS-002', classification: 'Software Engineering', price: 59.99, totalCopies: 8, borrowed: 5, remaining: 3, borrowCount: 32, barcode: '9780132350884', locationRoom: 'A102', shelf: 'Rack-02' },
+            { id: 'BK003', name: 'Design Patterns', author: 'Erich Gamma', publisher: 'Addison-Wesley', category: 'CS-003', classification: 'Software Design', price: 69.99, totalCopies: 6, borrowed: 2, remaining: 4, borrowCount: 28, barcode: '9780201633610', locationRoom: 'A103', shelf: 'Rack-03' },
+            { id: 'BK004', name: 'The Pragmatic Programmer', author: 'David Thomas', publisher: 'Addison-Wesley', category: 'CS-004', classification: 'Programming', price: 49.99, totalCopies: 12, borrowed: 7, remaining: 5, borrowCount: 56, barcode: '9780135957059', locationRoom: 'A104', shelf: 'Rack-04' },
+            { id: 'BK005', name: 'Refactoring', author: 'Martin Fowler', publisher: 'Addison-Wesley', category: 'CS-005', classification: 'Software Engineering', price: 64.99, totalCopies: 5, borrowed: 1, remaining: 4, borrowCount: 18, barcode: '9780134757599', locationRoom: 'A105', shelf: 'Rack-05' },
+            { id: 'BK006', name: 'JavaScript: The Good Parts', author: 'Douglas Crockford', publisher: "O'Reilly Media", category: 'CS-006', classification: 'Web Development', price: 39.99, totalCopies: 9, borrowed: 4, remaining: 5, borrowCount: 41, barcode: '9780596517748', locationRoom: 'A106', shelf: 'Rack-06' },
+            { id: 'BK007', name: 'You Don\'t Know JS', author: 'Kyle Simpson', publisher: "O'Reilly Media", category: 'CS-007', classification: 'JavaScript', price: 44.99, totalCopies: 7, borrowed: 3, remaining: 4, borrowCount: 23, barcode: '9781449365035', locationRoom: 'A107', shelf: 'Rack-07' },
+            { id: 'BK008', name: 'Eloquent JavaScript', author: 'Marijn Haverbeke', publisher: 'No Starch Press', category: 'CS-008', classification: 'JavaScript', price: 39.95, totalCopies: 8, borrowed: 6, remaining: 2, borrowCount: 37, barcode: '9781593279509', locationRoom: 'A108', shelf: 'Rack-08' },
+        ];
+
+        // Books to borrow list
+        let borrowList = [];
+
+        // Initialize tables
+        function init() {
+            renderBooksTable();
+            renderBorrowTable();
+            setupKeyboardShortcuts();
+        }
+
+        // Render all books table
+        function renderBooksTable() {
+            const tbody = document.getElementById('booksTableBody');
+            tbody.innerHTML = booksData.map(book => `
+                <tr ondblclick="addBookToBorrow('${book.id}')">
+                    <td>${book.name}</td>
+                    <td>${book.author}</td>
+                    <td>${book.publisher}</td>
+                    <td>${book.category}</td>
+                    <td>${book.classification}</td>
+                    <td>$${book.price.toFixed(2)}</td>
+                    <td>${book.totalCopies}</td>
+                    <td>${book.borrowed}</td>
+                    <td>${book.remaining}</td>
+                    <td>${book.borrowCount}</td>
+                    <td>${book.id}</td>
+                    <td>-</td>
+                    <td>${book.barcode}</td>
+                    <td>${book.locationRoom}</td>
+                    <td>${book.shelf}</td>
+                    <td><button class="btn" style="padding:1px 8px;" onclick="addBookToBorrow('${book.id}')">+</button></td>
+                </tr>
+            `).join('');
+        }
+
+        // Render borrow list table
+        function renderBorrowTable() {
+            const tbody = document.getElementById('borrowTableBody');
+            if (borrowList.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="color:#999;text-align:center;">No books selected for borrowing</td></tr>';
+            } else {
+                const today = new Date().toLocaleDateString();
+                tbody.innerHTML = borrowList.map((book, index) => `
+                    <tr>
+                        <td>${book.id}</td>
+                        <td>${book.name}</td>
+                        <td>${book.publisher}</td>
+                        <td>${today}</td>
+                        <td>Librarian</td>
+                        <td>$${book.price.toFixed(2)}</td>
+                        <td><button class="btn" style="padding:1px 8px;" onclick="removeFromBorrow(${index})">-</button></td>
+                    </tr>
+                `).join('');
+            }
+            document.getElementById('totalRecords').textContent = borrowList.length;
+        }
+
+        // Add book to borrow list
+        function addBookToBorrow(bookId) {
+            const book = booksData.find(b => b.id === bookId);
+            if (book && !borrowList.find(b => b.id === bookId)) {
+                if (book.remaining > 0) {
+                    borrowList.push({...book});
+                    renderBorrowTable();
+                } else {
+                    alert('This book is not available for borrowing.');
+                }
+            } else if (borrowList.find(b => b.id === bookId)) {
+                alert('This book is already in the borrowing list.');
+            }
+        }
+
+        // Remove book from borrow list
+        function removeFromBorrow(index) {
+            borrowList.splice(index, 1);
+            renderBorrowTable();
+        }
+
+        // Confirm borrowing
+        function confirmBorrow() {
+            if (borrowList.length === 0) {
+                alert('Please add at least one book to borrow.');
+                return;
+            }
+            
+            let message = `Confirm borrowing ${borrowList.length} book(s)?\n\n`;
+            borrowList.forEach(book => {
+                message += `- ${book.name}\n`;
+            });
+            
+            if (confirm(message)) {
+                // Update book quantities in the original data
+                borrowList.forEach(borrowedBook => {
+                    const book = booksData.find(b => b.id === borrowedBook.id);
+                    if (book) {
+                        book.borrowed++;
+                        book.remaining--;
+                        book.borrowCount++;
+                    }
+                });
+
+                if (document.getElementById('printReceipt').checked) {
+                    printReceipt();
+                }
+
+                borrowList = [];
+                renderBooksTable();
+                renderBorrowTable();
+
+                alert('Borrowing completed successfully!');
+                
+                if (document.getElementById('closeAfterConfirm').checked) {
+                    window.close();
+                }
+            }
+        }
+
+        // Print receipt
+        function printReceipt() {
+            let receiptContent = `
+================================\n
+       LIBRARY BORROWING RECEIPT\n
+         ${new Date().toLocaleString()}\n
+================================\n\n
+Reader: [Reader Name]\n\n
+Borrowed Books:\n
+--------------------------------\n
+`;
+            borrowList.forEach((book, index) => {
+                receiptContent += `${index + 1}. ${book.name}\n   Book No: ${book.id}\n   Due Date: ${new Date(Date.now() + 30*24*60*60*1000).toLocaleDateString()}\n\n`;
+            });
+            
+            receiptContent += `\nTotal: ${borrowList.length} item(s)\n\n================================`;
+
+            console.log(receiptContent);
+            // In a real application, this would open a print dialog
+        }
+
+        // Setup keyboard shortcuts
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', function(e) {
+                switch(e.key.toLowerCase()) {
+                    case 'f1':
+                        e.preventDefault();
+                        document.getElementById('readerNo').focus();
+                        break;
+                    case 'f2':
+                        e.preventDefault();
+                        document.getElementById('bookNo').focus();
+                        break;
+                    case 'f5':
+                        e.preventDefault();
+                        confirmBorrow();
+                        break;
+                    case 'f8':
+                        e.preventDefault();
+                        showAdvancedSearch();
+                        break;
+                    case 'enter':
+                        if (document.activeElement.id === 'bookNo') {
+                            searchBookByNo(document.getElementById('bookNo').value);
+                        } else if (document.activeElement.id === 'readerNo') {
+                            searchReaderByNo(document.getElementById('readerNo').value);
+                        }
+                        break;
+                    case '-':
+                        if (e.location === 3 || e.key === 'Subtract') { // Numpad minus
+                            if (borrowList.length > 0) {
+                                removeFromBorrow(borrowList.length - 1);
+                            }
+                        }
+                        break;
+                }
+            });
+        }
+
+        // Search reader by number (simulated)
+        function searchReaderByNo(readerNo) {
+            // Simulated reader data lookup
+            const mockReaders = {
+                'R001': { name: 'John Smith', gender: 'Male', type: 'Student', available: 5, borrowed: 2 },
+                'R002': { name: 'Mary Johnson', gender: 'Female', type: 'Faculty', available: 10, borrowed: 3 },
+                'R003': { name: 'David Williams', gender: 'Male', type: 'Staff', available: 8, borrowed: 1 },
+            };
+
+            const reader = mockReaders[readerNo];
+            if (reader) {
+                document.getElementById('readerName').value = reader.name;
+                document.getElementById('gender').value = reader.gender;
+                document.getElementById('readerType').value = reader.type;
+                document.getElementById('availableQty').value = reader.available;
+                document.getElementById('borrowedQty').value = reader.borrowed;
+            } else {
+                alert('Reader not found. Reader No.: R001, R002, R003 (for demo)');
+            }
+        }
+
+        // Search book by number (simulated)
+        function searchBookByNo(bookNo) {
+            const book = booksData.find(b => b.id === bookNo.toUpperCase());
+            if (book) {
+                document.getElementById('bookName').value = book.name;
+                document.getElementById('remainingQty').value = book.remaining;
+                addBookToBorrow(book.id);
+                document.getElementById('bookNo').value = '';
+            } else {
+                alert('Book not found. Try: BK001 - BK008');
+            }
+        }
+
+        // Show advanced search dialog
+        function showAdvancedSearch() {
+            alert('Advanced Search Dialog\n\nSearch options:\n- By Book Title\n- By Author\n- By Publisher\n- By Category\n- By Publication Year\n- And more filters...');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', init);
+
+        // Button click handlers for search buttons
+        document.querySelectorAll('.search-btn:not(.advanced-search)').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const input = this.previousElementSibling.previousElementSibling;
+                if (input && input.id === 'readerNo') {
+                    searchReaderByNo(input.value);
+                } else if (input && input.id === 'bookNo') {
+                    searchBookByNo(input.value);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
